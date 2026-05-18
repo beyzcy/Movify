@@ -18,13 +18,11 @@ const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, acti
         <div className="px-8 pt-6 pb-4">
           {/* User info */}
           <div className="flex items-center gap-4 mb-6">
-            <img
-              src="https://i.pravatar.cc/80?img=47"
-              alt="Sarah J"
-              className="w-16 h-16 rounded-full object-cover ring-4 ring-gray-100"
-            />
+            <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center ring-4 ring-gray-100 flex-shrink-0">
+              <span className="text-white text-xl font-bold">BC</span>
+            </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-800">Sarah J</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Beyza C</h2>
               <p className="text-sm text-gray-400">Premium Üye</p>
             </div>
           </div>

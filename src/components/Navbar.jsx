@@ -50,13 +50,11 @@ const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <img
-            src="https://i.pravatar.cc/40?img=47"
-            alt="Sarah J"
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-gray-200"
-          />
+          <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center ring-2 ring-gray-200 flex-shrink-0">
+            <span className="text-white text-sm font-bold">BC</span>
+          </div>
           <div className="leading-none">
-            <p className="text-sm font-semibold text-gray-800">Sarah J</p>
+            <p className="text-sm font-semibold text-gray-800">Beyza C</p>
             <p className="text-xs text-gray-400 mt-0.5">Premium</p>
           </div>
           <ChevronDown className="w-4 h-4 text-gray-400" />
