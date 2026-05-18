@@ -4,7 +4,7 @@ import { Bell, ChevronDown, Plus } from 'lucide-react';
 const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
   return (
     <nav className="flex items-center justify-between px-8 py-5">
-      <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Flix.id</h1>
+      <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Movify</h1>
 
       <div className="flex items-center bg-gray-100 rounded-full px-2 py-2 gap-1">
         <button
