@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Star, Eye, Heart, Send } from 'lucide-react';
+import { ArrowLeft, Star, Eye, Heart, Send, ListPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { USER_ID } from '../lib/userId';
 import Navbar from '../components/Navbar';
@@ -29,7 +29,7 @@ const StarRating = ({ movieId, userRating = 0, onRate }) => {
   );
 };
 
-const MovieDetail = ({ movieId, movies, onWatched, onFavorite, onRate, activePage, onPageChange, onOpenForm }) => {
+const MovieDetail = ({ movieId, movies, onWatched, onFavorite, onRate, onOpenListModal, activePage, onPageChange }) => {
   const [detail, setDetail]           = useState(null);
   const [genres, setGenres]           = useState([]);
   const [reviews, setReviews]         = useState([]);
@@ -117,7 +117,7 @@ const MovieDetail = ({ movieId, movies, onWatched, onFavorite, onRate, activePag
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-500 via-slate-600 to-slate-700 p-6 lg:p-10 flex items-start justify-center">
       <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
-        <Navbar onOpenForm={onOpenForm} activePage={activePage} onPageChange={onPageChange} />
+        <Navbar activePage={activePage} onPageChange={onPageChange} />
 
         <div className="px-8 pt-2 pb-0">
           <button
@@ -208,6 +208,16 @@ const MovieDetail = ({ movieId, movies, onWatched, onFavorite, onRate, activePag
                 <span className="text-xs text-gray-400">Puanın:</span>
                 <StarRating movieId={movieId} userRating={enriched.userRating || 0} onRate={onRate} />
               </div>
+
+              {onOpenListModal && (
+                <button
+                  onClick={() => onOpenListModal(movieId)}
+                  className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-full transition-colors"
+                >
+                  <ListPlus className="w-4 h-4" />
+                  Listeye Ekle
+                </button>
+              )}
             </div>
           </div>
         </div>

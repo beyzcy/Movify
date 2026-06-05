@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Pencil, Trash2, Heart, Info } from 'lucide-react';
+import { Eye, Heart, Info, ListPlus } from 'lucide-react';
 
 const StarRating = ({ movieId, userRating = 0, onRate }) => {
   const [hovered, setHovered] = useState(0);
@@ -22,7 +22,7 @@ const StarRating = ({ movieId, userRating = 0, onRate }) => {
   );
 };
 
-const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMovieSelect }) => {
+const FilmCard = ({ movie, onWatched, onRate, onFavorite, onMovieSelect, onOpenListModal }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -40,6 +40,7 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
           onError={(e) => { e.target.src = 'https://placehold.co/160x210?text=No+Image'; }}
         />
 
+        {/* İzlendi badge */}
         {movie.watched && (
           <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow z-10">
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -48,6 +49,7 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
           </div>
         )}
 
+        {/* Hover overlay */}
         {isHovered && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 z-20">
             {onMovieSelect && (
@@ -68,24 +70,19 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
                 İzlendi
               </button>
             )}
-            <button
-              onClick={() => onEdit(movie)}
-              className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
-            >
-              <Pencil className="w-3 h-3" />
-              Düzenle
-            </button>
-            <button
-              onClick={() => onDelete(movie.movie_id)}
-              className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
-            >
-              <Trash2 className="w-3 h-3" />
-              Sil
-            </button>
+            {onOpenListModal && (
+              <button
+                onClick={() => onOpenListModal(movie.movie_id)}
+                className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
+              >
+                <ListPlus className="w-3 h-3" />
+                Listeye Ekle
+              </button>
+            )}
           </div>
         )}
 
-        {/* Heart — z-30 her zaman overlay z-20'nin üstünde */}
+        {/* Heart — z-30, overlay'in üstünde */}
         <button
           onClick={(e) => { e.stopPropagation(); onFavorite(movie.movie_id); }}
           className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/65 transition-colors z-30"

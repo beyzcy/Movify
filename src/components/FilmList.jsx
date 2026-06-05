@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Flame, Zap, Smile, BookOpen, Ghost, Heart,
   Rocket, Sparkles, AlertTriangle, FileText, Compass,
-  SlidersHorizontal, ListFilter
+  SlidersHorizontal, ListFilter, Swords, Wand2, HelpCircle, Sword
 } from 'lucide-react';
 import FilmCard from './FilmCard';
 
@@ -18,14 +18,18 @@ const GENRE_ICONS = {
   Thriller:     <AlertTriangle className="w-4 h-4" />,
   Documentary:  <FileText className="w-4 h-4" />,
   Adventure:    <Compass className="w-4 h-4" />,
+  Crime:        <Swords className="w-4 h-4" />,
+  Fantasy:      <Wand2 className="w-4 h-4" />,
+  Mystery:      <HelpCircle className="w-4 h-4" />,
+  War:          <Sword className="w-4 h-4" />,
 };
 
-const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onMovieSelect }) => {
+const FilmList = ({ movies, onWatched, onRate, onFavorite, onMovieSelect, onOpenListModal }) => {
   const [activeCategory, setActiveCategory] = useState('Trending');
   const [filter, setFilter] = useState('all');
 
   const categories = useMemo(() => {
-    const genres = [...new Set(movies.map(m => m.genre))].sort();
+    const genres = [...new Set(movies.map(m => m.genre).filter(Boolean))].sort();
     return ['Trending', ...genres];
   }, [movies]);
 
@@ -36,7 +40,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
       const matchesCategory = resolvedCategory === 'Trending' || m.genre === resolvedCategory;
       const matchesWatch =
         filter === 'all' ||
-        (filter === 'watched' && m.watched) ||
+        (filter === 'watched'   && m.watched) ||
         (filter === 'unwatched' && !m.watched);
       return matchesCategory && matchesWatch;
     });
@@ -44,6 +48,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
 
   return (
     <div>
+      {/* Kategori tabları */}
       <div className="flex gap-3 px-8 pb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
         {categories.map(name => (
           <button
@@ -61,6 +66,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
         ))}
       </div>
 
+      {/* Başlık + filtreler */}
       <div className="flex items-center justify-between px-8 mb-5">
         <h2 className="text-lg font-bold text-gray-800">
           {resolvedCategory === 'Trending' ? 'Tüm Filmler' : `${resolvedCategory} Filmleri`}
@@ -87,6 +93,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
         </div>
       </div>
 
+      {/* Film kartları */}
       <div className="flex gap-5 px-8 pb-8 overflow-x-auto [&::-webkit-scrollbar]:hidden">
         {filteredMovies.length > 0 ? (
           filteredMovies.map(movie => (
@@ -94,11 +101,10 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
               key={movie.movie_id}
               movie={movie}
               onWatched={onWatched}
-              onDelete={onDelete}
-              onEdit={onEdit}
               onRate={onRate}
               onFavorite={onFavorite}
               onMovieSelect={onMovieSelect}
+              onOpenListModal={onOpenListModal}
             />
           ))
         ) : (

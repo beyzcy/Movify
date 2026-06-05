@@ -1,7 +1,7 @@
 import React from 'react';
-import { Bell, ChevronDown, Plus } from 'lucide-react';
+import { Search } from 'lucide-react';
 
-const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
+const Navbar = ({ activePage, onPageChange }) => {
   return (
     <nav className="flex items-center justify-between px-8 py-5">
       <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Movify</h1>
@@ -18,6 +18,17 @@ const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
           Ana Sayfa
         </button>
         <button
+          onClick={() => onPageChange('search')}
+          className={`flex items-center gap-1.5 px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
+            activePage === 'search'
+              ? 'bg-gray-900 text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Search className="w-3.5 h-3.5" />
+          Ara
+        </button>
+        <button
           onClick={() => onPageChange('profile')}
           className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
             activePage === 'profile'
@@ -29,26 +40,7 @@ const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
-        {onOpenForm && (
-          <button
-            onClick={onOpenForm}
-            className="flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-gray-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Film Ekle
-          </button>
-        )}
-
-        <div className="relative">
-          <button className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-            <Bell className="w-5 h-5 text-gray-600" />
-          </button>
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-bold">
-            {String(Math.min(99, 8))}
-          </span>
-        </div>
-
+      <div className="flex items-center gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center ring-2 ring-gray-200 flex-shrink-0">
             <span className="text-white text-sm font-bold">BC</span>
@@ -57,7 +49,6 @@ const Navbar = ({ onOpenForm, activePage, onPageChange }) => {
             <p className="text-sm font-semibold text-gray-800">Beyza C</p>
             <p className="text-xs text-gray-400 mt-0.5">Premium</p>
           </div>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
         </div>
       </div>
     </nav>
