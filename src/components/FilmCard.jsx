@@ -33,14 +33,13 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
     >
       <div className="relative rounded-2xl overflow-hidden mb-2.5 shadow-sm" style={{ height: '210px' }}>
         <img
-          src={movie.poster}
+          src={movie.poster_url}
           alt={movie.title}
           className="w-full h-full object-cover transition-transform duration-300"
           style={{ transform: isHovered ? 'scale(1.06)' : 'scale(1)' }}
           onError={(e) => { e.target.src = 'https://placehold.co/160x210?text=No+Image'; }}
         />
 
-        {/* Watched badge top-right */}
         {movie.watched && (
           <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow z-10">
             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -49,12 +48,11 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
           </div>
         )}
 
-        {/* Action overlay on hover */}
         {isHovered && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 z-20">
             {onMovieSelect && (
               <button
-                onClick={() => onMovieSelect(movie.id)}
+                onClick={() => onMovieSelect(movie.movie_id)}
                 className="flex items-center gap-1.5 bg-white/90 hover:bg-white text-gray-900 text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
               >
                 <Info className="w-3 h-3" />
@@ -63,7 +61,7 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
             )}
             {!movie.watched && (
               <button
-                onClick={() => onWatched(movie.id)}
+                onClick={() => onWatched(movie.movie_id)}
                 className="flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
               >
                 <Eye className="w-3 h-3" />
@@ -78,7 +76,7 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
               Düzenle
             </button>
             <button
-              onClick={() => onDelete(movie.id)}
+              onClick={() => onDelete(movie.movie_id)}
               className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
             >
               <Trash2 className="w-3 h-3" />
@@ -87,9 +85,9 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
           </div>
         )}
 
-        {/* Heart — rendered last so z-30 always wins over overlay z-20 */}
+        {/* Heart — z-30 her zaman overlay z-20'nin üstünde */}
         <button
-          onClick={(e) => { e.stopPropagation(); onFavorite(movie.id); }}
+          onClick={(e) => { e.stopPropagation(); onFavorite(movie.movie_id); }}
           className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:bg-black/65 transition-colors z-30"
         >
           <Heart
@@ -103,11 +101,11 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMo
       <h3 className="text-sm font-semibold text-gray-800 truncate leading-snug">{movie.title}</h3>
       <div className="flex items-center gap-1.5 mt-0.5">
         <span className="text-amber-400 text-xs">★</span>
-        <span className="text-xs font-medium text-gray-600">{movie.rating}</span>
+        <span className="text-xs font-medium text-gray-600">{movie.average_rating ?? '—'}</span>
         <span className="text-gray-300 text-xs">|</span>
-        <span className="text-xs text-gray-400">{movie.year}</span>
+        <span className="text-xs text-gray-400">{movie.release_year}</span>
       </div>
-      <StarRating movieId={movie.id} userRating={movie.userRating || 0} onRate={onRate} />
+      <StarRating movieId={movie.movie_id} userRating={movie.userRating || 0} onRate={onRate} />
     </div>
   );
 };

@@ -65,7 +65,7 @@ const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, acti
             <div className="flex gap-5 flex-wrap">
               {watchedMovies.map(movie => (
                 <FilmCard
-                  key={movie.id}
+                  key={movie.movie_id}
                   movie={movie}
                   onWatched={onWatched}
                   onDelete={onDelete}

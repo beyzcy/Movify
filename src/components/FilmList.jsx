@@ -91,7 +91,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onM
         {filteredMovies.length > 0 ? (
           filteredMovies.map(movie => (
             <FilmCard
-              key={movie.id}
+              key={movie.movie_id}
               movie={movie}
               onWatched={onWatched}
               onDelete={onDelete}

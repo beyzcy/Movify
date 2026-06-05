@@ -3,8 +3,8 @@ import { Heart } from 'lucide-react';
 
 const POSTER_W = 88;
 const POSTER_H = 132;
-const STACKED_X = 24;  // overlap offset when collapsed
-const SPREAD_X = 100;  // offset between posters when expanded
+const STACKED_X = 24;
+const SPREAD_X = 100;
 
 const FavoriteMovies = ({ movies }) => {
   const [containerHovered, setContainerHovered] = useState(false);
@@ -63,7 +63,7 @@ const FavoriteMovies = ({ movies }) => {
       >
         {favorites.map((movie, index) => (
           <div
-            key={movie.id}
+            key={movie.movie_id}
             style={{
               position: 'absolute',
               width: POSTER_W,
@@ -73,7 +73,6 @@ const FavoriteMovies = ({ movies }) => {
               transition: 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
-            {/* Inner wrapper handles individual poster hover independently */}
             <div
               className="w-full h-full rounded-xl overflow-hidden shadow-2xl cursor-pointer relative group/poster"
               style={{ transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
@@ -87,7 +86,7 @@ const FavoriteMovies = ({ movies }) => {
               }}
             >
               <img
-                src={movie.poster}
+                src={movie.poster_url}
                 alt={movie.title}
                 className="w-full h-full object-cover"
                 onError={(e) => { e.target.src = `https://placehold.co/${POSTER_W}x${POSTER_H}?text=?`; }}
@@ -95,7 +94,7 @@ const FavoriteMovies = ({ movies }) => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover/poster:opacity-100 transition-opacity duration-200">
                 <div className="absolute bottom-2 left-2 right-2">
                   <p className="text-white text-xs font-bold truncate leading-snug">{movie.title}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">{movie.year}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{movie.release_year}</p>
                 </div>
               </div>
             </div>

@@ -7,13 +7,14 @@ import { supabase } from './lib/supabase';
 import { USER_ID } from './lib/userId';
 
 function App() {
-  const [activePage, setActivePage] = useState('home');
+  const [activePage, setActivePage]       = useState('home');
   const [selectedMovieId, setSelectedMovieId] = useState(null);
-  const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingMovie, setEditingMovie] = useState(null);
+  const [movies, setMovies]               = useState([]);
+  const [genres, setGenres]               = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState(null);
+  const [isFormOpen, setIsFormOpen]       = useState(false);
+  const [editingMovie, setEditingMovie]   = useState(null);
 
   const handlePageChange = (page) => {
     setActivePage(page);
@@ -25,9 +26,7 @@ function App() {
     setActivePage('movieDetail');
   };
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
+  useEffect(() => { fetchAllData(); }, []);
 
   const fetchAllData = async () => {
     try {
@@ -36,29 +35,38 @@ function App() {
 
       const [
         { data: moviesData, error: moviesErr },
+        { data: genresData },
         { data: favoritesData },
         { data: watchedData },
         { data: ratingsData },
       ] = await Promise.all([
-        supabase.from('movies').select('*').order('created_at', { ascending: false }),
+        supabase.from('movies').select('*, movie_genres(genres(name))').order('movie_id', { ascending: false }),
+        supabase.from('genres').select('*').order('name'),
         supabase.from('favorites').select('movie_id').eq('user_id', USER_ID),
         supabase.from('watched_movies').select('movie_id').eq('user_id', USER_ID),
-        supabase.from('ratings').select('movie_id, rating').eq('user_id', USER_ID),
+        supabase.from('ratings').select('movie_id, score').eq('user_id', USER_ID),
       ]);
 
       if (moviesErr) throw moviesErr;
 
       const favoriteIds = new Set((favoritesData || []).map(f => f.movie_id));
       const watchedIds  = new Set((watchedData  || []).map(w => w.movie_id));
-      const ratingsMap  = Object.fromEntries((ratingsData || []).map(r => [r.movie_id, r.rating]));
+      const ratingsMap  = Object.fromEntries((ratingsData || []).map(r => [r.movie_id, r.score]));
+
+      setGenres(genresData || []);
 
       setMovies(
-        (moviesData || []).map(m => ({
-          ...m,
-          isFavorite: favoriteIds.has(m.id),
-          watched:    watchedIds.has(m.id),
-          userRating: ratingsMap[m.id] ?? 0,
-        }))
+        (moviesData || []).map(m => {
+          const genreList = (m.movie_genres || []).map(mg => mg.genres?.name).filter(Boolean);
+          return {
+            ...m,
+            genre:      genreList[0] || '',
+            genres:     genreList,
+            isFavorite: favoriteIds.has(m.movie_id),
+            watched:    watchedIds.has(m.movie_id),
+            userRating: ratingsMap[m.movie_id] ?? 0,
+          };
+        })
       );
     } catch (err) {
       console.error('Supabase veri çekme hatası:', err);
@@ -75,65 +83,60 @@ function App() {
       const { data, error } = await supabase
         .from('movies')
         .update({
-          title:       movieData.title,
-          genre:       movieData.genre,
-          year:        movieData.year,
-          rating:      movieData.rating,
-          description: movieData.description,
-          poster:      movieData.poster,
-          director:    movieData.director,
+          title:        movieData.title,
+          release_year: movieData.release_year,
+          director:     movieData.director,
+          description:  movieData.description,
+          poster_url:   movieData.poster_url,
         })
-        .eq('id', editingMovie.id)
+        .eq('movie_id', editingMovie.movie_id)
         .select()
         .single();
 
       if (!error && data) {
-        setMovies(prev => prev.map(m =>
-          m.id === editingMovie.id
-            ? { ...data, isFavorite: m.isFavorite, watched: m.watched, userRating: m.userRating }
-            : m
-        ));
+        if (movieData.genre_id) {
+          await supabase.from('movie_genres').delete().eq('movie_id', editingMovie.movie_id);
+          await supabase.from('movie_genres').insert({ movie_id: editingMovie.movie_id, genre_id: movieData.genre_id });
+        }
+        fetchAllData();
       }
       setEditingMovie(null);
     } else {
       const { data, error } = await supabase
         .from('movies')
         .insert({
-          title:       movieData.title,
-          genre:       movieData.genre,
-          year:        movieData.year,
-          rating:      movieData.rating,
-          description: movieData.description,
-          poster:      movieData.poster,
-          director:    movieData.director,
+          title:        movieData.title,
+          release_year: movieData.release_year,
+          director:     movieData.director,
+          description:  movieData.description,
+          poster_url:   movieData.poster_url,
         })
         .select()
         .single();
 
       if (!error && data) {
-        setMovies(prev => [{ ...data, isFavorite: false, watched: false, userRating: 0 }, ...prev]);
+        if (movieData.genre_id) {
+          await supabase.from('movie_genres').insert({ movie_id: data.movie_id, genre_id: movieData.genre_id });
+        }
+        fetchAllData();
       }
     }
     setIsFormOpen(false);
   };
 
   const handleWatched = async (id) => {
+    setMovies(prev => prev.map(m => m.movie_id === id ? { ...m, watched: true } : m));
     const { error } = await supabase
       .from('watched_movies')
       .upsert({ user_id: USER_ID, movie_id: id }, { onConflict: 'user_id,movie_id' });
-
-    if (!error) {
-      setMovies(prev => prev.map(m => m.id === id ? { ...m, watched: true } : m));
-    }
+    if (error) console.error('watched_movies hatası:', error.message);
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Bu filmi silmek istediğinden emin misin?')) return;
-
-    const { error } = await supabase.from('movies').delete().eq('id', id);
-
+    const { error } = await supabase.from('movies').delete().eq('movie_id', id);
     if (!error) {
-      setMovies(prev => prev.filter(m => m.id !== id));
+      setMovies(prev => prev.filter(m => m.movie_id !== id));
     }
   };
 
@@ -143,8 +146,11 @@ function App() {
   };
 
   const handleFavorite = async (id) => {
-    const movie = movies.find(m => m.id === id);
+    const movie = movies.find(m => m.movie_id === id);
     if (!movie) return;
+
+    const newVal = !movie.isFavorite;
+    setMovies(prev => prev.map(m => m.movie_id === id ? { ...m, isFavorite: newVal } : m));
 
     if (movie.isFavorite) {
       const { error } = await supabase
@@ -152,35 +158,33 @@ function App() {
         .delete()
         .eq('user_id', USER_ID)
         .eq('movie_id', id);
-
-      if (!error) {
-        setMovies(prev => prev.map(m => m.id === id ? { ...m, isFavorite: false } : m));
+      if (error) {
+        console.error('favorites delete hatası:', error.message);
+        setMovies(prev => prev.map(m => m.movie_id === id ? { ...m, isFavorite: true } : m));
       }
     } else {
       const { error } = await supabase
         .from('favorites')
         .insert({ user_id: USER_ID, movie_id: id });
-
-      if (!error) {
-        setMovies(prev => prev.map(m => m.id === id ? { ...m, isFavorite: true } : m));
+      if (error) {
+        console.error('favorites insert hatası:', error.message);
+        setMovies(prev => prev.map(m => m.movie_id === id ? { ...m, isFavorite: false } : m));
       }
     }
   };
 
   const handleRate = async (id, userRating) => {
+    setMovies(prev => prev.map(m => m.movie_id === id ? { ...m, userRating } : m));
     const { error } = await supabase
       .from('ratings')
       .upsert(
-        { user_id: USER_ID, movie_id: id, rating: userRating },
+        { user_id: USER_ID, movie_id: id, score: userRating },
         { onConflict: 'user_id,movie_id' }
       );
-
-    if (!error) {
-      setMovies(prev => prev.map(m => m.id === id ? { ...m, userRating } : m));
-    }
+    if (error) console.error('ratings hatası:', error.message);
   };
 
-  // ── Loading / Error ekranları ─────────────────────────────────────────────
+  // ── Loading / Error ───────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -227,16 +231,15 @@ function App() {
 
   return (
     <>
-      {activePage === 'home' && <Home {...sharedProps} />}
-      {activePage === 'profile' && <Profile {...sharedProps} />}
-      {activePage === 'movieDetail' && (
-        <MovieDetail {...sharedProps} movieId={selectedMovieId} />
-      )}
+      {activePage === 'home'        && <Home {...sharedProps} />}
+      {activePage === 'profile'     && <Profile {...sharedProps} />}
+      {activePage === 'movieDetail' && <MovieDetail {...sharedProps} movieId={selectedMovieId} />}
       <FilmForm
         isOpen={isFormOpen}
         onClose={() => { setIsFormOpen(false); setEditingMovie(null); }}
         onSubmit={handleAddMovie}
         editingMovie={editingMovie}
+        genres={genres}
       />
     </>
   );
