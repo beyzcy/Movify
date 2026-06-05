@@ -1,135 +1,138 @@
 import { useState, useEffect } from 'react';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import MovieDetail from './pages/MovieDetail';
 import FilmForm from './components/FilmForm';
-
-const DEFAULT_MOVIES = [
-  {
-    id: '1',
-    title: 'The Adventure of Blue Sword',
-    genre: 'Adventure',
-    year: 2023,
-    rating: 8.5,
-    description: 'An epic journey through magical landscapes',
-    poster: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    title: 'Recalling the Journey of Dol',
-    genre: 'Animation',
-    year: 2023,
-    rating: 7.8,
-    description: 'A heartwarming tale of friendship',
-    poster: 'https://images.unsplash.com/photo-1533066481125-ec8e6e1ab2f0?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    title: 'Loetoeng Kasarung',
-    genre: 'Animation',
-    year: 2023,
-    rating: 7.8,
-    description: 'A classic folklore reimagined',
-    poster: 'https://images.unsplash.com/photo-1527549993586-dff825b37782?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '4',
-    title: 'Gajah Langka',
-    genre: 'Adventure',
-    year: 2023,
-    rating: 6.0,
-    description: 'A rare elephant on an adventure',
-    poster: 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '5',
-    title: 'Si Kang Satay',
-    genre: 'Drama',
-    year: 2023,
-    rating: 7.1,
-    description: 'A young cook chasing his culinary dream',
-    poster: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '6',
-    title: 'Mommy Cat',
-    genre: 'Animation',
-    year: 2023,
-    rating: 7.8,
-    description: 'A mother cat and her kittens face the world',
-    poster: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&h=400&fit=crop',
-    watched: false,
-    userRating: 0,
-    isFavorite: false,
-    createdAt: new Date().toISOString()
-  }
-];
+import { supabase } from './lib/supabase';
+import { USER_ID } from './lib/userId';
 
 function App() {
   const [activePage, setActivePage] = useState('home');
-  const [movies, setMovies] = useState(() => {
-    try {
-      const saved = localStorage.getItem('movies');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // migrate: add missing fields for older saved data
-        return parsed.map(m => ({ userRating: 0, isFavorite: false, ...m }));
-      }
-      return DEFAULT_MOVIES;
-    } catch {
-      return DEFAULT_MOVIES;
-    }
-  });
+  const [selectedMovieId, setSelectedMovieId] = useState(null);
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem('movies', JSON.stringify(movies));
-  }, [movies]);
+  const handlePageChange = (page) => {
+    setActivePage(page);
+    if (page !== 'movieDetail') setSelectedMovieId(null);
+  };
 
-  const handleAddMovie = (movieData) => {
+  const handleMovieSelect = (id) => {
+    setSelectedMovieId(id);
+    setActivePage('movieDetail');
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [
+        { data: moviesData, error: moviesErr },
+        { data: favoritesData },
+        { data: watchedData },
+        { data: ratingsData },
+      ] = await Promise.all([
+        supabase.from('movies').select('*').order('created_at', { ascending: false }),
+        supabase.from('favorites').select('movie_id').eq('user_id', USER_ID),
+        supabase.from('watched_movies').select('movie_id').eq('user_id', USER_ID),
+        supabase.from('ratings').select('movie_id, rating').eq('user_id', USER_ID),
+      ]);
+
+      if (moviesErr) throw moviesErr;
+
+      const favoriteIds = new Set((favoritesData || []).map(f => f.movie_id));
+      const watchedIds  = new Set((watchedData  || []).map(w => w.movie_id));
+      const ratingsMap  = Object.fromEntries((ratingsData || []).map(r => [r.movie_id, r.rating]));
+
+      setMovies(
+        (moviesData || []).map(m => ({
+          ...m,
+          isFavorite: favoriteIds.has(m.id),
+          watched:    watchedIds.has(m.id),
+          userRating: ratingsMap[m.id] ?? 0,
+        }))
+      );
+    } catch (err) {
+      console.error('Supabase veri çekme hatası:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── CRUD ─────────────────────────────────────────────────────────────────
+
+  const handleAddMovie = async (movieData) => {
     if (editingMovie) {
-      setMovies(prev => prev.map(m =>
-        m.id === editingMovie.id ? { ...editingMovie, ...movieData } : m
-      ));
+      const { data, error } = await supabase
+        .from('movies')
+        .update({
+          title:       movieData.title,
+          genre:       movieData.genre,
+          year:        movieData.year,
+          rating:      movieData.rating,
+          description: movieData.description,
+          poster:      movieData.poster,
+          director:    movieData.director,
+        })
+        .eq('id', editingMovie.id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        setMovies(prev => prev.map(m =>
+          m.id === editingMovie.id
+            ? { ...data, isFavorite: m.isFavorite, watched: m.watched, userRating: m.userRating }
+            : m
+        ));
+      }
       setEditingMovie(null);
     } else {
-      setMovies(prev => [...prev, {
-        id: Date.now().toString(),
-        ...movieData,
-        userRating: 0,
-        isFavorite: false,
-        createdAt: new Date().toISOString()
-      }]);
+      const { data, error } = await supabase
+        .from('movies')
+        .insert({
+          title:       movieData.title,
+          genre:       movieData.genre,
+          year:        movieData.year,
+          rating:      movieData.rating,
+          description: movieData.description,
+          poster:      movieData.poster,
+          director:    movieData.director,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        setMovies(prev => [{ ...data, isFavorite: false, watched: false, userRating: 0 }, ...prev]);
+      }
     }
     setIsFormOpen(false);
   };
 
-  const handleWatched = (id) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, watched: true } : m));
+  const handleWatched = async (id) => {
+    const { error } = await supabase
+      .from('watched_movies')
+      .upsert({ user_id: USER_ID, movie_id: id }, { onConflict: 'user_id,movie_id' });
+
+    if (!error) {
+      setMovies(prev => prev.map(m => m.id === id ? { ...m, watched: true } : m));
+    }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Bu filmi silmek istediğinden emin misin?')) {
+  const handleDelete = async (id) => {
+    if (!window.confirm('Bu filmi silmek istediğinden emin misin?')) return;
+
+    const { error } = await supabase.from('movies').delete().eq('id', id);
+
+    if (!error) {
       setMovies(prev => prev.filter(m => m.id !== id));
     }
   };
@@ -139,32 +142,96 @@ function App() {
     setIsFormOpen(true);
   };
 
-  const handleRate = (id, userRating) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, userRating } : m));
+  const handleFavorite = async (id) => {
+    const movie = movies.find(m => m.id === id);
+    if (!movie) return;
+
+    if (movie.isFavorite) {
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', USER_ID)
+        .eq('movie_id', id);
+
+      if (!error) {
+        setMovies(prev => prev.map(m => m.id === id ? { ...m, isFavorite: false } : m));
+      }
+    } else {
+      const { error } = await supabase
+        .from('favorites')
+        .insert({ user_id: USER_ID, movie_id: id });
+
+      if (!error) {
+        setMovies(prev => prev.map(m => m.id === id ? { ...m, isFavorite: true } : m));
+      }
+    }
   };
 
-  const handleFavorite = (id) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, isFavorite: !m.isFavorite } : m));
+  const handleRate = async (id, userRating) => {
+    const { error } = await supabase
+      .from('ratings')
+      .upsert(
+        { user_id: USER_ID, movie_id: id, rating: userRating },
+        { onConflict: 'user_id,movie_id' }
+      );
+
+    if (!error) {
+      setMovies(prev => prev.map(m => m.id === id ? { ...m, userRating } : m));
+    }
   };
+
+  // ── Loading / Error ekranları ─────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-500 via-slate-600 to-slate-700 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white font-medium">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-500 via-slate-600 to-slate-700 flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          <p className="text-red-500 font-bold text-lg mb-2">Bağlantı Hatası</p>
+          <p className="text-gray-500 text-sm mb-6 break-all">{error}</p>
+          <button
+            onClick={fetchAllData}
+            className="bg-gray-900 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   const sharedProps = {
     movies,
-    onWatched: handleWatched,
-    onDelete: handleDelete,
-    onEdit: handleEdit,
-    onRate: handleRate,
-    onFavorite: handleFavorite,
+    onWatched:     handleWatched,
+    onDelete:      handleDelete,
+    onEdit:        handleEdit,
+    onRate:        handleRate,
+    onFavorite:    handleFavorite,
     activePage,
-    onPageChange: setActivePage,
-    onOpenForm: () => setIsFormOpen(true),
+    onPageChange:  handlePageChange,
+    onOpenForm:    () => setIsFormOpen(true),
+    onMovieSelect: handleMovieSelect,
   };
 
   return (
     <>
-      {activePage === 'home'
-        ? <Home {...sharedProps} />
-        : <Profile {...sharedProps} />
-      }
+      {activePage === 'home' && <Home {...sharedProps} />}
+      {activePage === 'profile' && <Profile {...sharedProps} />}
+      {activePage === 'movieDetail' && (
+        <MovieDetail {...sharedProps} movieId={selectedMovieId} />
+      )}
       <FilmForm
         isOpen={isFormOpen}
         onClose={() => { setIsFormOpen(false); setEditingMovie(null); }}

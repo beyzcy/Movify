@@ -20,7 +20,7 @@ const GENRE_ICONS = {
   Adventure:    <Compass className="w-4 h-4" />,
 };
 
-const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite }) => {
+const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, onMovieSelect }) => {
   const [activeCategory, setActiveCategory] = useState('Trending');
   const [filter, setFilter] = useState('all');
 
@@ -98,6 +98,7 @@ const FilmList = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite }) =
               onEdit={onEdit}
               onRate={onRate}
               onFavorite={onFavorite}
+              onMovieSelect={onMovieSelect}
             />
           ))
         ) : (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, Pencil, Trash2, Heart } from 'lucide-react';
+import { Eye, Pencil, Trash2, Heart, Info } from 'lucide-react';
 
 const StarRating = ({ movieId, userRating = 0, onRate }) => {
   const [hovered, setHovered] = useState(0);
@@ -22,7 +22,7 @@ const StarRating = ({ movieId, userRating = 0, onRate }) => {
   );
 };
 
-const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite }) => {
+const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite, onMovieSelect }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -52,6 +52,15 @@ const FilmCard = ({ movie, onWatched, onDelete, onEdit, onRate, onFavorite }) =>
         {/* Action overlay on hover */}
         {isHovered && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 z-20">
+            {onMovieSelect && (
+              <button
+                onClick={() => onMovieSelect(movie.id)}
+                className="flex items-center gap-1.5 bg-white/90 hover:bg-white text-gray-900 text-xs font-medium px-3 py-1.5 rounded-full transition-colors"
+              >
+                <Info className="w-3 h-3" />
+                Detay
+              </button>
+            )}
             {!movie.watched && (
               <button
                 onClick={() => onWatched(movie.id)}

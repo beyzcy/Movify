@@ -5,6 +5,7 @@ const GENRES = ["Action", "Comedy", "Drama", "Horror", "Romance", "Sci-Fi", "Ani
 const FilmForm = ({ isOpen, onClose, onSubmit, editingMovie }) => {
   const [formData, setFormData] = useState({
     title: '',
+    director: '',
     genre: 'Action',
     year: new Date().getFullYear(),
     rating: 7.5,
@@ -15,16 +16,18 @@ const FilmForm = ({ isOpen, onClose, onSubmit, editingMovie }) => {
   useEffect(() => {
     if (editingMovie) {
       setFormData({
-        title: editingMovie.title,
-        genre: editingMovie.genre,
-        year: editingMovie.year,
-        rating: editingMovie.rating,
+        title:       editingMovie.title,
+        director:    editingMovie.director || '',
+        genre:       editingMovie.genre,
+        year:        editingMovie.year,
+        rating:      editingMovie.rating,
         description: editingMovie.description,
-        poster: editingMovie.poster
+        poster:      editingMovie.poster
       });
     } else {
       setFormData({
         title: '',
+        director: '',
         genre: 'Action',
         year: new Date().getFullYear(),
         rating: 7.5,
@@ -77,6 +80,18 @@ const FilmForm = ({ isOpen, onClose, onSubmit, editingMovie }) => {
               required
               className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
               placeholder="Enter movie title"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-200 mb-2">Director</label>
+            <input
+              type="text"
+              name="director"
+              value={formData.director}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+              placeholder="Enter director name"
             />
           </div>
 

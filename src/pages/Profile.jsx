@@ -3,10 +3,11 @@ import Navbar from '../components/Navbar';
 import FavoriteMovies from '../components/FavoriteMovies';
 import FilmCard from '../components/FilmCard';
 
-const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, activePage, onPageChange, onOpenForm }) => {
-  const watchedMovies = movies.filter(m => m.watched);
-  const ratedMovies = movies.filter(m => m.userRating > 0);
-  const avgUserRating = ratedMovies.length > 0
+const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, activePage, onPageChange, onOpenForm, onMovieSelect }) => {
+  const watchedMovies   = movies.filter(m => m.watched);
+  const favoriteMovies  = movies.filter(m => m.isFavorite);
+  const ratedMovies     = movies.filter(m => m.userRating > 0);
+  const avgUserRating   = ratedMovies.length > 0
     ? (ratedMovies.reduce((sum, m) => sum + m.userRating, 0) / ratedMovies.length).toFixed(1)
     : '—';
 
@@ -28,7 +29,7 @@ const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, acti
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 rounded-2xl p-5">
               <p className="text-3xl font-bold text-gray-800">{movies.length}</p>
               <p className="text-sm text-gray-400 mt-1">Toplam Film</p>
@@ -36,6 +37,10 @@ const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, acti
             <div className="bg-green-50 rounded-2xl p-5">
               <p className="text-3xl font-bold text-green-600">{watchedMovies.length}</p>
               <p className="text-sm text-gray-400 mt-1">İzlenen Film</p>
+            </div>
+            <div className="bg-red-50 rounded-2xl p-5">
+              <p className="text-3xl font-bold text-red-500">{favoriteMovies.length}</p>
+              <p className="text-sm text-gray-400 mt-1">Favori Film</p>
             </div>
             <div className="bg-amber-50 rounded-2xl p-5">
               <p className="text-3xl font-bold text-amber-500">{avgUserRating}</p>
@@ -67,6 +72,7 @@ const Profile = ({ movies, onWatched, onDelete, onEdit, onRate, onFavorite, acti
                   onEdit={onEdit}
                   onRate={onRate}
                   onFavorite={onFavorite}
+                  onMovieSelect={onMovieSelect}
                 />
               ))}
             </div>
