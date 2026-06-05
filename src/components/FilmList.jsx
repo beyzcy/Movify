@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import {
   Flame, Zap, Smile, BookOpen, Ghost, Heart,
   Rocket, Sparkles, AlertTriangle, FileText, Compass,
-  SlidersHorizontal, ListFilter, Swords, Wand2, HelpCircle, Sword
+  Swords, Wand2, HelpCircle, Sword, SlidersHorizontal, ListFilter
 } from 'lucide-react';
 import FilmCard from './FilmCard';
 
 const GENRE_ICONS = {
-  Trending:     <Flame className="w-4 h-4" />,
+  All:          <Flame className="w-4 h-4" />,
   Action:       <Zap className="w-4 h-4" />,
   Comedy:       <Smile className="w-4 h-4" />,
   Drama:        <BookOpen className="w-4 h-4" />,
@@ -25,19 +25,19 @@ const GENRE_ICONS = {
 };
 
 const FilmList = ({ movies, onWatched, onRate, onFavorite, onMovieSelect, onOpenListModal }) => {
-  const [activeCategory, setActiveCategory] = useState('Trending');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [filter, setFilter] = useState('all');
 
   const categories = useMemo(() => {
     const genres = [...new Set(movies.map(m => m.genre).filter(Boolean))].sort();
-    return ['Trending', ...genres];
+    return ['All', ...genres];
   }, [movies]);
 
-  const resolvedCategory = categories.includes(activeCategory) ? activeCategory : 'Trending';
+  const resolvedCategory = categories.includes(activeCategory) ? activeCategory : 'All';
 
   const filteredMovies = useMemo(() => {
     return movies.filter(m => {
-      const matchesCategory = resolvedCategory === 'Trending' || m.genre === resolvedCategory;
+      const matchesCategory = resolvedCategory === 'All' || m.genre === resolvedCategory;
       const matchesWatch =
         filter === 'all' ||
         (filter === 'watched'   && m.watched) ||
@@ -47,54 +47,63 @@ const FilmList = ({ movies, onWatched, onRate, onFavorite, onMovieSelect, onOpen
   }, [movies, resolvedCategory, filter]);
 
   return (
-    <div>
-      {/* Kategori tabları */}
-      <div className="flex gap-3 px-8 pb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-        {categories.map(name => (
-          <button
-            key={name}
-            onClick={() => setActiveCategory(name)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl whitespace-nowrap text-sm font-medium transition-all flex-shrink-0 ${
-              resolvedCategory === name
-                ? 'bg-gray-800 text-white shadow-md'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            {GENRE_ICONS[name] ?? <Sparkles className="w-4 h-4" />}
-            {name}
-          </button>
-        ))}
+    <div className="pt-2">
+      {/* ── Category tabs ─────────────────────────────────────────── */}
+      <div className="flex gap-2 px-6 lg:px-10 pb-5 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+        {categories.map(name => {
+          const isActive = resolvedCategory === name;
+          return (
+            <button
+              key={name}
+              onClick={() => setActiveCategory(name)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all duration-200 flex-shrink-0"
+              style={isActive
+                ? { backgroundColor: '#9C8181', color: '#fff', boxShadow: '0 1px 4px rgba(156,129,129,0.35)' }
+                : { backgroundColor: 'rgba(255,255,255,0.65)', color: '#1A1A24' }}
+            >
+              {GENRE_ICONS[name] ?? <Sparkles className="w-4 h-4" />}
+              {name}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Başlık + filtreler */}
-      <div className="flex items-center justify-between px-8 mb-5">
-        <h2 className="text-lg font-bold text-gray-800">
-          {resolvedCategory === 'Trending' ? 'Tüm Filmler' : `${resolvedCategory} Filmleri`}
+      {/* ── Header + filter buttons ───────────────────────────────── */}
+      <div className="flex items-center justify-between px-6 lg:px-10 mb-5">
+        <h2 className="text-lg font-bold" style={{ color: '#1A1A24' }}>
+          {resolvedCategory === 'All' ? 'All Films' : resolvedCategory}
+          <span className="ml-2 text-sm font-normal text-gray-400">({filteredMovies.length})</span>
         </h2>
+
         <div className="flex gap-2">
+          {/* Unwatched filter */}
           <button
             onClick={() => setFilter(f => f === 'unwatched' ? 'all' : 'unwatched')}
-            title="İzlenmeyenler"
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-              filter === 'unwatched' ? 'bg-blue-500 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'
-            }`}
+            title="Unwatched only"
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
+            style={filter === 'unwatched'
+              ? { backgroundColor: '#819C9C', color: '#fff' }
+              : { backgroundColor: 'rgba(255,255,255,0.7)', color: '#1A1A24' }}
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>
+
+          {/* Watched filter */}
           <button
             onClick={() => setFilter(f => f === 'watched' ? 'all' : 'watched')}
-            title="İzlenenler"
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-              filter === 'watched' ? 'bg-green-500 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'
-            }`}
+            title="Watched only"
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
+            style={filter === 'watched'
+              ? { backgroundColor: '#819C81', color: '#fff' }
+              : { backgroundColor: 'rgba(255,255,255,0.7)', color: '#1A1A24' }}
           >
             <ListFilter className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Film kartları */}
-      <div className="flex gap-5 px-8 pb-8 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+      {/* ── Cards ─────────────────────────────────────────────────── */}
+      <div className="flex gap-5 px-6 lg:px-10 pb-8 overflow-x-auto [&::-webkit-scrollbar]:hidden">
         {filteredMovies.length > 0 ? (
           filteredMovies.map(movie => (
             <FilmCard
@@ -108,8 +117,8 @@ const FilmList = ({ movies, onWatched, onRate, onFavorite, onMovieSelect, onOpen
             />
           ))
         ) : (
-          <div className="flex-1 flex items-center justify-center py-12">
-            <p className="text-sm text-gray-400">Bu kategoride film bulunamadı</p>
+          <div className="flex-1 flex items-center justify-center py-16">
+            <p className="text-sm" style={{ color: '#9C8181' }}>No films in this category</p>
           </div>
         )}
       </div>

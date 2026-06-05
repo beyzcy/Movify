@@ -19,25 +19,32 @@ const ListModal = ({ isOpen, onClose, movieId, userLists, onAddToList, onCreateL
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style={{ backgroundColor: 'rgba(26,26,36,0.45)', backdropFilter: 'blur(6px)' }}
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl"
+        className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl"
+        style={{ backgroundColor: '#EDE8E8', border: '1px solid rgba(156,129,129,0.2)' }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-gray-800">Listeye Ekle</h3>
+          <h3 className="text-lg font-bold" style={{ color: '#1A1A24' }}>Add to List</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            style={{ backgroundColor: 'rgba(156,129,129,0.15)' }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(156,129,129,0.28)'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(156,129,129,0.15)'}
           >
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4" style={{ color: '#9C8181' }} />
           </button>
         </div>
 
+        {/* List items */}
         {userLists.length === 0 && !showCreate ? (
-          <p className="text-sm text-gray-400 text-center py-6">Henüz listeniz yok.</p>
+          <p className="text-sm text-center py-6" style={{ color: '#9C8181' }}>You have no lists yet.</p>
         ) : (
           <div className="space-y-1.5 mb-4 max-h-64 overflow-y-auto">
             {userLists.map(list => {
@@ -46,20 +53,29 @@ const ListModal = ({ isOpen, onClose, movieId, userLists, onAddToList, onCreateL
                 <button
                   key={list.list_id}
                   onClick={() => onAddToList(list.list_id, movieId)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.55)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <List className="w-4 h-4 text-gray-500" />
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: 'rgba(129,156,156,0.18)' }}
+                    >
+                      <List className="w-4 h-4" style={{ color: '#819C9C' }} />
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-semibold text-gray-800">{list.name}</p>
-                      <p className="text-xs text-gray-400">{list.movieIds.size} film</p>
+                      <p className="text-sm font-semibold" style={{ color: '#1A1A24' }}>{list.name}</p>
+                      <p className="text-xs text-gray-400">{list.movieIds.size} films</p>
                     </div>
                   </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                    inList ? 'bg-green-500' : 'border-2 border-gray-200'
-                  }`}>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center transition-all flex-shrink-0"
+                    style={inList
+                      ? { backgroundColor: '#819C81' }
+                      : { border: '2px solid rgba(156,129,129,0.3)' }}
+                  >
                     {inList && <Check className="w-3.5 h-3.5 text-white" />}
                   </div>
                 </button>
@@ -68,6 +84,7 @@ const ListModal = ({ isOpen, onClose, movieId, userLists, onAddToList, onCreateL
           </div>
         )}
 
+        {/* Create form / button */}
         {showCreate ? (
           <div className="flex gap-2">
             <input
@@ -75,31 +92,47 @@ const ListModal = ({ isOpen, onClose, movieId, userLists, onAddToList, onCreateL
               value={newListName}
               onChange={e => setNewListName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
-              placeholder="Liste adı girin..."
+              placeholder="List name..."
               autoFocus
-              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-gray-400"
+              className="flex-1 px-3 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.7)',
+                border: '1.5px solid rgba(156,129,129,0.25)',
+                color: '#1A1A24',
+              }}
+              onFocus={e => e.target.style.borderColor = '#9C8181'}
+              onBlur={e => e.target.style.borderColor = 'rgba(156,129,129,0.25)'}
             />
             <button
               onClick={handleCreate}
               disabled={creating || !newListName.trim()}
-              className="px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl disabled:opacity-40 hover:bg-gray-700 transition-colors"
+              className="px-4 py-2.5 text-white text-sm font-semibold rounded-xl disabled:opacity-40 transition-all"
+              style={{ backgroundColor: '#9C8181' }}
             >
-              {creating ? '...' : 'Oluştur'}
+              {creating ? '...' : 'Create'}
             </button>
             <button
               onClick={() => { setShowCreate(false); setNewListName(''); }}
-              className="px-3 py-2.5 bg-gray-100 text-gray-600 text-sm rounded-xl hover:bg-gray-200 transition-colors"
+              className="px-3 py-2.5 text-sm rounded-xl transition-colors"
+              style={{ backgroundColor: 'rgba(156,129,129,0.15)', color: '#9C8181' }}
             >
-              İptal
+              Cancel
             </button>
           </div>
         ) : (
           <button
             onClick={() => setShowCreate(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all"
+            style={{
+              border: '2px dashed rgba(156,129,129,0.35)',
+              color: '#9C8181',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#9C8181'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(156,129,129,0.35)'}
           >
             <Plus className="w-4 h-4" />
-            Yeni Liste Oluştur
+            Create New List
           </button>
         )}
       </div>
